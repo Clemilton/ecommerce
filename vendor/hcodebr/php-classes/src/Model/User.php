@@ -11,7 +11,7 @@ class User extends Model{
 	public static function login($login,$password){
 		
 		$sql = new Sql();
-
+		//Procura o login no banco
 		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :LOGIN",array(
 			":LOGIN"=>$login
 		));
@@ -28,7 +28,7 @@ class User extends Model{
 			//Seta os dados do banco no atributo values (class Model)
 			$user->setData($data);
 
-
+			//Define a variavel Sessao
 			$_SESSION[User::SESSION] = $user->getValues();
 
 			return $user;
@@ -40,7 +40,7 @@ class User extends Model{
 	}
 
 	public static function verifyLogin($inadmin= true) {
-
+		//Caso Nao esteja logado ou nao seja um usuario admin
 		if(
 			!isset($_SESSION[User::SESSION])
 			||
@@ -51,7 +51,7 @@ class User extends Model{
 			(bool)$_SESSION[User::SESSION]["inadmin"]!== $inadmin
 
 		){
-
+			//Retorna para a pagina de login
 			header("Location: /admin/login");
 			exit;
 		}
@@ -64,6 +64,77 @@ class User extends Model{
 		$_SESSION[User::SESSION]=NULL;
 		
 	}
+
+	public static function listAll(){
+
+		$sql = new Sql();
+
+		return $sql->select("SELECT* from tb_users a INNER JOIN tb_persons b USING(idperson) ORDER BY b.desperson");
+	}
+
+	public function save(){
+		$sql = new Sql();
+
+
+		$results = $sql->select("CALL sp_users_save(:desperson,:deslogin,:despassword,:desemail,:nrphone,:inadmin)",array(
+			":desperson"	=>$this->getdesperson(),
+			":deslogin"		=>$this->getdeslogin(),
+			":despassword"	=>$this->getdespassword(),
+			":desemail"		=>$this->getdesemail(),
+			":nrphone"		=>$this->getnrphone(),
+			"inadmin"		=>$this->getinadmin()
+		
+		));
+
+		$this->setData($results[0]);
+
+
+	}
+
+	public function get($iduser){
+
+		$sql = new Sql();
+
+		$results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) WHERE a.iduser = :iduser",array(
+				":iduser"=>$iduser
+
+			));
+
+		$this->setData($results[0]);
+	}
+
+	public function update(){
+		$sql = new Sql();
+
+	
+
+		$results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)",array(
+			":iduser"		=>$this->getiduser(),
+			":desperson"	=>$this->getdesperson(),
+			":deslogin"		=>$this->getdeslogin(),
+			":despassword"	=>$this->getdespassword(),
+			":desemail"		=>$this->getdesemail(),
+			":nrphone"		=>$this->getnrphone(),
+			"inadmin"		=>$this->getinadmin()
+		
+		));
+
+		$this->setData($results[0]);
+
+
+	}
+
+	public function delete(){
+
+		$sql = new Sql();
+
+		$sql->query("CALL sp_users_delete(:iduser)", array(
+			":iduser"=>$this->getiduser()
+		));
+
+
+	}
+
 
 
 
