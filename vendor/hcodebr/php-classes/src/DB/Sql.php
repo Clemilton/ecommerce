@@ -20,6 +20,8 @@ class Sql {
 			Sql::PASSWORD
 		);
 
+		$this->conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
 	}
 
 	private function setParams($statement, $parameters = array())
@@ -54,14 +56,21 @@ class Sql {
 	public function select($rawQuery, $params = array()):array
 	{
 
-		$stmt = $this->conn->prepare($rawQuery);
+		try{
+			$stmt = $this->conn->prepare($rawQuery);
 
-		$this->setParams($stmt, $params);
+			$this->setParams($stmt, $params);
 
-		$stmt->execute();
+			$stmt->execute();
 
-		return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+			return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+		}catch(PDOException $e){
+			return json_enconde(array(
+				"erro:" => $e
+			));
+		}
 
+	
 	}
 
 }

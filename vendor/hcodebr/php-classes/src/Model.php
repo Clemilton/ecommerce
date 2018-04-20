@@ -28,6 +28,7 @@ class Model {
 	public function setData($data = array()){
 		//Seta os dados vindos do array $data dentro do $values
 		foreach ($data as $key => $value) {
+			//isso ira chamar a funcao __call. Metodos SET
 			$this->{"set".$key}($value);
 
 		}
