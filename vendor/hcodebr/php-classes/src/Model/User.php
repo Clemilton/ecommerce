@@ -164,6 +164,7 @@ class User extends Model{
 			throw new \Exception("Nao foi possivel recuperar a senha", 1);
 			
 		}else{
+			//Caso o email exista, fazer um link, com o id criptografado
 
 			$data = $results[0];
 
@@ -175,17 +176,18 @@ class User extends Model{
 			
 			
 			if(count($results2)===0){
-
+				//Procedure nao retornou valores
 				throw new \Exception("Nao foi possivel recuperar a senha", 1);
 				
 			}else{
 
 				$dataRecovery = $results2[0];
+				//Criptografia do link
 				$code = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, User::SECRET, $dataRecovery["idrecovery"], MCRYPT_MODE_ECB));
-
+				//Link. O index deve ter uma rota para tratar esse codigo.
 				$link= "http://www.ecommerce.com/admin/forgot/reset?code=$code";
-		
 				
+				//Envio do email.
 				$mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinir senha da Hcode Store","forgot",
 					array(
 						"name"=>$data["desperson"],
@@ -207,8 +209,10 @@ class User extends Model{
 
 	}
 
+	//Valida o codigo enviado pelo link
 	public static function validForgotDecrypt($code)
 	{
+		//Descriptografa o codigo
 		$idrecovery = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, User::SECRET, base64_decode($code), MCRYPT_MODE_ECB);
 		$sql = new Sql();
 		$results = $sql->select("
@@ -249,9 +253,8 @@ class User extends Model{
 
 	public function setPassword($password){
 
-
 		$sql = new Sql();
-
+		//Atualiza 
 		$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser",array(
 			":password"=>$password,
 			":iduser"=>$this->getiduser()

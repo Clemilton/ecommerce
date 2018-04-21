@@ -7,6 +7,7 @@ use \Slim\Slim;
 use \Hcode\Page;
 use \Hcode\PageAdmin;
 use \Hcode\Model\User;
+use \Hcode\Model\Category;
 
 $app = new Slim();
 
@@ -195,7 +196,9 @@ $app->get('/admin/forgot/',function(){
 });
 
 
-//POST esqueci senha
+/************--------------------------- ROTAS PARA ESQUECI A SENHA ----------------------************/
+/************-----------------------------------------------------------------------------************/
+
 $app->post('/admin/forgot',function(){
 
 	$user = User::getForgot($_POST["email"]);
@@ -205,7 +208,7 @@ $app->post('/admin/forgot',function(){
 
 });
 
-
+//Aviso de email envaiado
 $app->get('/admin/forgot/sent',function(){
 
 	//Inicializa a pagina. Nao tem header nem footer no admin
@@ -218,11 +221,13 @@ $app->get('/admin/forgot/sent',function(){
 
 
 });
-
+//Rota do link do email
 $app->get('/admin/forgot/reset',function(){
-
+	//Valida o codigo
 	$user = User::validForgotDecrypt($_GET["code"]);
 
+
+	//Cria o template html
 	$page  = new PageAdmin([
 		"header"=>false,
 		"footer"=>false
@@ -235,18 +240,21 @@ $app->get('/admin/forgot/reset',function(){
 });
 
 $app->post("/admin/forgot/reset",function(){
+	//Valida o codigo
 	$forgot = User::validForgotDecrypt($_POST["code"]);
 
+	//Pega o id do usuario que deseja recuperar a senha
 	User::setForgotUsed($forgot["idrecovery"]);
 
 	$user = new User();
-
+	//Pega um usuario a traves do id e seta em $user
 	$user->get((int) $forgot["iduser"]);
 
+	//Criptografa a senha
 	$password = password_hash($_POST["password"],PASSWORD_DEFAULT,[
 		"cost"=>12
 	]);
-
+	//Cadastra a senha no banco;
 	$user->setPassword($password);
 
 	$page  = new PageAdmin([
@@ -259,6 +267,97 @@ $app->post("/admin/forgot/reset",function(){
 
 
 
+});
+
+/************-----------------------------------------------------------------------------************/
+/************-----------------------------------------------------------------------------************/
+
+/************--------------------------- ROTAS PARA CATEGORIAS ADMIN ----------------------************/
+/************-----------------------------------------------------------------------------************/
+
+$app->get("/admin/categories",function (){
+
+	User::verifyLogin();
+
+	$page = new PageAdmin();
+
+	$categories = Category::listAll();
+
+	$page->setTpl("categories",array(
+		"categories" =>$categories
+	));
+
+});
+
+$app->get("/admin/categories/create",function(){
+
+	User::verifyLogin();
+
+	$page = new PageAdmin();
+
+	$page->setTpl("categories-create");
+});
+
+$app->post("/admin/categories/create",function(){
+
+	User::verifyLogin();
+
+	$category  = new Category();
+
+	$category->setData($_POST);
+	
+	
+	$category->save();
+
+	header('Location: /admin/categories');
+	exit;
+
+});
+
+$app->get("/admin/categories/:idcategory/delete",function($idcategory){
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$idcategory);
+
+	$category->delete();
+
+	header('Location: /admin/categories');
+	exit;
+});
+
+$app->get("/admin/categories/:idcategory",function($idcategory){
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$idcategory);
+
+	$page = new PageAdmin();
+
+	$page->setTpl("categories-update",array(
+		'category'=>$category->getValues()
+	));
+
+
+	
+});
+
+$app->post("/admin/categories/:idcategory", function($idcategory){
+	User::verifyLogin();
+
+	$category = new Category();
+	
+	$category->get((int)$idcategory);
+	
+	$category->setData($_POST);
+	
+	$category->save();	
+	
+	header('Location: /admin/categories');
+	exit;
 });
 
 $app->run();

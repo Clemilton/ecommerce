@@ -16,7 +16,7 @@ class Mailer{
 	public function __construct($toAddress,$toName,$subject, $tplName,$data=array()){
 		
 
-		
+		//Configuracao da view do EMAIL
 		$config = array(
 		    "tpl_dir"       => $_SERVER['DOCUMENT_ROOT']."/views/email/",
 		    "cache_dir"     => $_SERVER['DOCUMENT_ROOT']."/views-cache/",
