@@ -818,6 +818,7 @@ input[type="submit"]:hover, button[type=submit]:hover {background-color: #222}
 .add_to_cart_button:hover {background-color: #222;color: #fff;text-decoration: none}
 form.cart {
     margin-bottom: 25px;
+    
 }
 .product-inner-category {
     margin-bottom: 30px;

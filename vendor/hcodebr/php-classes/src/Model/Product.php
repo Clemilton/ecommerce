@@ -6,6 +6,8 @@ use \Hcode\DB\Sql;
 use \Hcode\Model;
 use \Hcode\Mailer;
 
+
+require_once('functions.php');
 class Product extends Model{
 
 	
@@ -15,6 +17,17 @@ class Product extends Model{
 		$sql = new Sql();
 
 		return $sql->select("SELECT* from tb_products ORDER BY desproduct");
+	}
+
+	public static function checkList($list){
+
+		foreach ($list as &$row ) {
+			$p= new Product();
+			$p->setData($row);
+			$row = $p->getValues();
+		}
+
+		return $list;
 	}
 
 	public function save(){
@@ -75,6 +88,7 @@ class Product extends Model{
 		)){
 
 			$url = "/res/site/img/products/".$this->getidproduct().".jpg";
+
 		}else{
 
 			$url = "/res/site/img/product.jpg";
@@ -124,6 +138,8 @@ class Product extends Model{
 			$this->getidproduct().".jpg";
 
 		imagejpeg($image,$dest);
+		smart_resize_image($dest,null,195,243,false,$dest,false,true,100);
+
 		imagedestroy($image);
 
 		$this->checkPhoto();

@@ -168,7 +168,7 @@ class User extends Model{
 
 			$data = $results[0];
 
-			//Chama a procedure para redifinir senha.
+			//Chama a procedure para redifinir senha. Cadastra na tabela de recuperacao de senha.
 			$results2 = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser,:desip)",array(
 				":iduser" => $data["iduser"],
 				":desip"  => $_SERVER["REMOTE_ADDR"]
@@ -188,6 +188,7 @@ class User extends Model{
 				$link= "http://www.ecommerce.com/admin/forgot/reset?code=$code";
 				
 				//Envio do email.
+				//Mailer($toAddress,$toName,$subject, $tplName,$data=array())
 				$mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinir senha da Hcode Store","forgot",
 					array(
 						"name"=>$data["desperson"],

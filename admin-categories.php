@@ -8,6 +8,7 @@ use \Hcode\Model\Category;
 /************--------------------------- ROTAS PARA CATEGORIAS ADMIN ----------------------************/
 /************-----------------------------------------------------------------------------************/
 
+//Pagina Categorias
 $app->get("/admin/categories",function (){
 
 	User::verifyLogin();
@@ -21,7 +22,7 @@ $app->get("/admin/categories",function (){
 	));
 
 });
-
+//Pagina Cadastro Categoria
 $app->get("/admin/categories/create",function(){
 
 	User::verifyLogin();
@@ -30,29 +31,28 @@ $app->get("/admin/categories/create",function(){
 
 	$page->setTpl("categories-create");
 });
-
+//Pagina Envio Categoias
 $app->post("/admin/categories/create",function(){
 
 	User::verifyLogin();
 
 	$category  = new Category();
-
+	//Setando os dados vindos do POST. (Classe model)
 	$category->setData($_POST);
-	
-	
+	//Salvando os dados no banco
 	$category->save();
 
 	header('Location: /admin/categories');
 	exit;
 
 });
-
+//Rota para deletar uma categoria identificada pelo $idcacategory
 $app->get("/admin/categories/:idcategory/delete",function($idcategory){
 
 	User::verifyLogin();
 
 	$category = new Category();
-
+	//Pega uma categoria do banco
 	$category->get((int)$idcategory);
 
 	$category->delete();
@@ -60,7 +60,7 @@ $app->get("/admin/categories/:idcategory/delete",function($idcategory){
 	header('Location: /admin/categories');
 	exit;
 });
-
+//Pagina update categoria
 $app->get("/admin/categories/:idcategory",function($idcategory){
 	User::verifyLogin();
 
@@ -77,7 +77,7 @@ $app->get("/admin/categories/:idcategory",function($idcategory){
 
 	
 });
-
+//Post Update categoria
 $app->post("/admin/categories/:idcategory", function($idcategory){
 	User::verifyLogin();
 
@@ -97,21 +97,6 @@ $app->post("/admin/categories/:idcategory", function($idcategory){
 /************-----------------------------------------------------------------------------************/
 /************-----------------------------------------------------------------------------************/
 
-//Rota site principal
-$app->get("/categories/:idcategory",function($idcategory){
-
-	$category = new Category();
-
-	$category->get((int)$idcategory);
-
-	$page = new Page();
-
-	$page->setTpl("category",[
-		'category'=>$category->getValues(),
-		'products'=>[]
-	]);
-
-});
 
 
 

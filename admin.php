@@ -52,7 +52,7 @@ $app->get('/admin/logout',function(){
 //Tela esqueci senha
 $app->get('/admin/forgot/',function(){
 
-	//Inicializa a pagina. Nao tem header nem footer no admin
+	//Inicializa a pagina. Nao tem header nem footer nessa pagina
 	$page  = new PageAdmin([
 		"header"=>false,
 		"footer"=>false
