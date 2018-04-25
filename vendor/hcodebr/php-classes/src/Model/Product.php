@@ -24,6 +24,8 @@ class Product extends Model{
 		foreach ($list as &$row ) {
 			$p= new Product();
 			$p->setData($row);
+
+			//getValues ajusta o caminho das fotos para cada produto
 			$row = $p->getValues();
 		}
 
@@ -99,13 +101,13 @@ class Product extends Model{
 
 	//Gambiarra pra fotos
 	public function getValues(){
-
+		//Seta a propriedade desphoto
 		$this->checkPhoto();
-
+		//Retorna os valores do produto( Classe MODEL)
 		$values = parent::getValues();
 
 
-
+		//Retorna os valoress
 		return $values;
 	}
 

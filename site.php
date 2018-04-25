@@ -4,6 +4,7 @@ use \Hcode\Page;
 use \Hcode\Model\Category;
 use \Hcode\Model\Product;
 
+
 //Rota Pagina Inicial
 $app->get('/', function() {
     
@@ -19,7 +20,7 @@ $app->get('/', function() {
 
 //Rota site principal
 $app->get("/categories/:idcategory",function($idcategory){
-
+		
 	$category = new Category();
 
 	$category->get((int)$idcategory);
@@ -28,7 +29,7 @@ $app->get("/categories/:idcategory",function($idcategory){
 
 	$page->setTpl("category",[
 		'category'=>$category->getValues(),
-		'products'=>[]
+		'products'=>Product::checkList($category->getProducts())
 	]);
 
 });
