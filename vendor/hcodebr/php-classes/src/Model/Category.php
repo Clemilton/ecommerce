@@ -18,7 +18,7 @@ class Category extends Model{
 
 		return $sql->select("SELECT* from tb_categories ORDER BY descategory");
 	}
-
+	//Salva uma categoria no banco. 
 	public function save(){
 		$sql = new Sql();
 
@@ -34,7 +34,7 @@ class Category extends Model{
 
 	}
 
-	//Pesquisar um usario atraves de um ID
+	//Pesquisar um usario  no banco atraves de um ID
 	public function get($idcategory){
 
 		$sql = new Sql();
@@ -46,7 +46,7 @@ class Category extends Model{
 
 		$this->setData($results[0]);
 	}
-
+	//Deleta um usuario atraves do id
 	public function delete(){
 
 		$sql = new Sql();
@@ -73,7 +73,8 @@ class Category extends Model{
 		file_put_contents($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR."categories-menu.html", $str);
 
 	}
-
+	//Função Dupla. Caso related == true  - Retorna os produtos sao da categoria
+	//				Caso Related == false - Retorna os produtos que NAO sao da categoria
 	public function getProducts($related= true){
 
 		$sql = new Sql();
@@ -104,7 +105,10 @@ class Category extends Model{
 
 		}
 	}
-	
+	//Retorna um array
+	//"data"	- Retorna os produtos que estao na pagina especifica.
+	//"total"	- Retorna o total de produtos
+	//"pages"	- Retorna a quantidade de paginas
 	public function getProductsPage($page =1 ,$itemsPerPage = 3){
 
 		$start=($page-1)*$itemsPerPage;
@@ -131,7 +135,7 @@ class Category extends Model{
 			"pages"=>ceil($resultsTotal[0]["nrtotal"]/$itemsPerPage)
 		];
 	}
-
+	//Adiciona o produto na categoria
 	public function addProduct($idproduct){
 
 		$sql = new Sql();
@@ -141,7 +145,7 @@ class Category extends Model{
 			":idproduct"=>$idproduct
 		]);
 	}
-
+	//Remove um produto da categoria
 	public function removeProduct($idproduct){
 
 		$sql   = new Sql();
