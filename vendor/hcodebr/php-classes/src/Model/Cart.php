@@ -18,11 +18,19 @@ class Cart extends Model{
 		//Se a secao Existir e se o ID foi definido entao carrega o carrinho
 		if(isset($_SESSION[Cart::SESSION]) && (int)$_SESSION[Cart::SESSION]['idcart']>0){
 			$cart->get((int)$_SESSION[Cart::SESSION]['idcart']);
+			var_dump($cart->getValues());
+			echo "Caso 1 ".session_id();
+			exit;
 		}else{
 
-
+			//Tenta pegar a partir do session_id o carrinho
 			$cart->getFromSessionID();
-			//Criar um carrinho novo
+				
+			var_dump($cart->getValues());
+			echo "Caso 2 ".session_id();
+			exit;
+
+		
 			if(!(int)$cart->getidcart()>0){
 				$data=[
 					"dessessionid"=>session_id()
@@ -40,9 +48,6 @@ class Cart extends Model{
 
 			$cart->setToSession();
 
-			
-
-
 		}
 		return $cart;
 	}
@@ -53,7 +58,7 @@ class Cart extends Model{
 
 		$_SESSION[Cart::SESSION] = $this->getValues();
 	}
-
+	//Retorna o carrinho, atraves do  session_id()
 	public function getFromSessionID(){
 
 		$sql = new Sql();
@@ -61,12 +66,13 @@ class Cart extends Model{
 		$results = $sql->select("SELECT * FROM tb_carts WHERE dessessionid =:dessessionid",[
 			':dessessionid'=>session_id()
 		]);
-
+		//Se a query retornou algum valor, seta os dados do carrinho na instancia
 		if(count($results)>0){
 			$this->setData($results[0]);
 		}
 	}
 
+	//Retorna um Cart fornecendo o ID
 	public function get($idcart){
 
 		$sql = new Sql();
@@ -75,7 +81,7 @@ class Cart extends Model{
 			':idcart'=>$idcart
 		]);
 
-
+		//Se a query retornou algum valor, seta os dados do carrinho na instancia
 		if(count($results)>0){
 			$this->setData($results[0]);
 		}

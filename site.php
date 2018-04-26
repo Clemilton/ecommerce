@@ -75,7 +75,7 @@ $app->get("/products/:desurl",function($desurl){
 	]);
 
 });
-
+//Pagina de carrinhos
 $app->get("/cart",function(){
 
 	$cart = Cart::getFromSession();
