@@ -50,7 +50,7 @@
 
                         <?php $counter1=-1;  if( isset($pages) && ( is_array($pages) || $pages instanceof Traversable ) && sizeof($pages) ) foreach( $pages as $key1 => $value1 ){ $counter1++; ?>
 
-                        <li id="<?php echo htmlspecialchars( $value1["page"], ENT_COMPAT, 'UTF-8', FALSE ); ?>"><a href="<?php echo htmlspecialchars( $value1["link"], ENT_COMPAT, 'UTF-8', FALSE ); ?>"><?php echo htmlspecialchars( $value1["page"], ENT_COMPAT, 'UTF-8', FALSE ); ?></a></li>
+                        <li><a id="<?php echo htmlspecialchars( $value1["page"], ENT_COMPAT, 'UTF-8', FALSE ); ?>" href="<?php echo htmlspecialchars( $value1["link"], ENT_COMPAT, 'UTF-8', FALSE ); ?>" ><?php echo htmlspecialchars( $value1["page"], ENT_COMPAT, 'UTF-8', FALSE ); ?></a></li>
                         <?php } ?>
 
 
@@ -60,6 +60,12 @@
                             </a>
                         </li>
                         </ul>
+
+                        <script type="text/javascript">
+                            //Deixar a pagina atual azul
+                            document.getElementById("<?php echo htmlspecialchars( $page["num"], ENT_COMPAT, 'UTF-8', FALSE ); ?>").style.color = "blue";
+                           
+                        </script>
                         
 
                     </nav>                        

@@ -17,13 +17,11 @@ $app->get('/', function() {
     
 });
 
-
-
 //Rota site principal
 $app->get("/categories/:idcategory",function($idcategory){
 	
 	$numPage = (isset($_GET['page']) ) ? (int)$_GET['page']:1;
-	$itemsPerPage=1;
+	$itemsPerPage=8;
 	if($numPage<=0){//Caso esteja na primeira pagina e clique em Anterior
 		header("Location: /categories/$idcategory");//Volta pra primeira pagina
 		exit;
@@ -61,7 +59,21 @@ $app->get("/categories/:idcategory",function($idcategory){
 
 });
 
+//Detalhes do produto
+$app->get("/products/:desurl",function($desurl){
 
+	$product = new Product();
+
+	$product->getFromURL($desurl);
+
+	$page = new Page();
+
+	$page->setTpl("product-detail",[
+		'product'=>$product->getValues(),
+		'categories'=>$product->getCategories()
+	]);
+
+});
 
 
 

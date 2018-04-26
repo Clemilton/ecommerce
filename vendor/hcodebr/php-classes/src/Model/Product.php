@@ -111,6 +111,7 @@ class Product extends Model{
 		return $values;
 	}
 
+
 	public function setPhoto($file){
 
 		//Detectar o tipo da extensao do arquivo
@@ -140,14 +141,38 @@ class Product extends Model{
 			$this->getidproduct().".jpg";
 
 		imagejpeg($image,$dest);
-		smart_resize_image($dest,null,195,243,false,$dest,false,true,100);
+		//smart_resize_image($dest,null,195,243,false,$dest,false,true,100);
 
 		imagedestroy($image);
 
 		$this->checkPhoto();
 	}
 
+	//Retorna o produto atraves da URL
+	public function getFromURL($desurl){
 
+		$sql = new Sql();
+
+		$rows = $sql->select("SELECT * FROM tb_products WHERE desurl = :desurl LIMIT 1",[
+			":desurl"=>$desurl
+		]);
+
+		$this->setData($rows[0]);
+
+	}
+	//Retorna as categorias que estao relacionadas com o produtos
+	public function getCategories(){
+
+		$sql = new Sql();
+
+		return $sql->select("
+			SELECT * from tb_categories a
+			INNER JOIN tb_productscategories b ON a.idcategory=b.idcategory
+			WHERE b.idproduct= :idproduct
+		",[
+			":idproduct"=>$this->getidproduct()
+		]);
+	}
 
 }
 
