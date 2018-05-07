@@ -82,10 +82,10 @@ class User extends Model{
 			throw new \Exception("Usuario inexistente ou senha inválida", 1);
 		}
 	}
-
+	//Usado no admin para verificar se o usuario e admin
 	public static function verifyLogin($inadmin= true) {
 		//Caso Nao esteja logado ou nao seja um usuario admin
-		if(User::checkLogin($inadmin)){
+		if(!User::checkLogin($inadmin)){
 			//Retorna para a pagina de login
 			header("Location: /admin/login");
 			exit;

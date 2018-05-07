@@ -10,9 +10,11 @@ use \Hcode\Model\Cart;
 $app->get('/', function() {
     
 	$products = Product::listAll();
+	$productsWithPhotos = Product::checkList($products);
+
 	$page = new Page();
 	$page->setTpl("index", [
-		'products'=>Product::checkList($products)
+		'products'=>$productsWithPhotos
 	]);
 
     
@@ -22,22 +24,19 @@ $app->get('/', function() {
 $app->get("/categories/:idcategory",function($idcategory){
 	
 	$numPage = (isset($_GET['page']) ) ? (int)$_GET['page']:1;
-	$itemsPerPage=8;
+	$itemsPerPage=2;
 	if($numPage<=0){//Caso esteja na primeira pagina e clique em Anterior
 		header("Location: /categories/$idcategory");//Volta pra primeira pagina
 		exit;
 	}
-
 	
 	$category = new Category();
 
-	$category->get((int)$idcategory);
-
+	$category->get((int)$idcategory);	
+	//
 	$pagination = $category->getProductsPage($numPage,$itemsPerPage);
-
-
+	
 	$page = new Page();
-
 
 	$pages=[];	
 
@@ -82,10 +81,54 @@ $app->get("/cart",function(){
 
 	$page = new Page();
 
-	$page->setTpl("cart");
+	$page->setTpl("cart",[
+		'cart'=>$cart->getValues(),
+		'products'=>$cart->getProducts()
+	]);
 
 });
 
+$app->get("/cart/:idproduct/add",function($idproduct){
+	$product = new Product();
 
+	$product->get((int)$idproduct);
+
+	$cart = Cart::getFromSession();
+
+	$qtd= (isset($_GET['qtd']))?(int)$_GET['qtd']:1;
+
+	for($i=0;$i<$qtd;$i++){
+		
+		$cart->addProduct($product);
+
+	}
+	header("Location: /cart");
+	exit;
+});
+
+$app->get("/cart/:idproduct/minus",function($idproduct){
+	$product = new Product();
+
+	$product->get((int)$idproduct);
+
+	$cart = Cart::getFromSession();
+
+	$cart->removeProduct($product);
+
+	header("Location: /cart");
+	exit;
+});
+$app->get("/cart/:idproduct/remove",function($idproduct){
+	$product = new Product();
+
+	$product->get((int)$idproduct);
+
+	$cart = Cart::getFromSession();
+
+	$cart->removeProduct($product,true);
+
+	header("Location: /cart");
+	exit;
+});
 
 ?>
