@@ -9,6 +9,8 @@ $app = new Slim();
 
 $app->config('debug', true);
 
+require_once("functions.php");
+
 //Rotas para o site principal
 require_once("site.php");
 

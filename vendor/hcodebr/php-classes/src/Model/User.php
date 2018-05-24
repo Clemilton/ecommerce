@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace Hcode\Model;
 
@@ -6,163 +6,185 @@ use \Hcode\DB\Sql;
 use \Hcode\Model;
 use \Hcode\Mailer;
 
-class User extends Model{
+class User extends Model {
 
-	const SESSION ="User";
-
-	//Chave de criptografia - PRECISA TER 16 CARACTERES
+	const SESSION = "User";
 	const SECRET = "HcodePhp7_Secret";
+	const ERROR = "UserError";
+	const ERROR_REGISTER = "UserErrorRegister";
 
-	public static function getFromSession(){
+	public static function getFromSession()
+	{
+
 		$user = new User();
-			
-		if(isset($_SESSION[User::SESSION]) && (int)$_SESSION[User::SESSION]['iduser']>0){
+
+		if (isset($_SESSION[User::SESSION]) && (int)$_SESSION[User::SESSION]['iduser'] > 0) {
 
 			$user->setData($_SESSION[User::SESSION]);
 
-
 		}
+
 		return $user;
 
 	}
 
-	public static function checkLogin($inadmin=true){
-		if(
+	public static function checkLogin($inadmin = true)
+	{
 
+		if (
 			!isset($_SESSION[User::SESSION])
 			||
 			!$_SESSION[User::SESSION]
 			||
-			!(int)$_SESSION[User::SESSION]["iduser"]> 0
-		){
-
+			!(int)$_SESSION[User::SESSION]["iduser"] > 0
+		) {
+			//Não está logado
 			return false;
-		}else{
-			//Esta logado e e uma rota da administracao
-			if($inadmin===true && (bool)$_SESSION[User::SESSION]['inadmin']===true){
+
+		} else {
+
+			if ($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true) {
+
 				return true;
-			}else if($inadmin==false){
+
+			} else if ($inadmin === false) {
+
 				return true;
-			}else{
+
+			} else {
 
 				return false;
+
 			}
 
 		}
 
-
 	}
-	public static function login($login,$password){
-		
+
+	public static function login($login, $password)
+	{
+
 		$sql = new Sql();
-		//Procura o login no banco
-		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :LOGIN",array(
+
+		$results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b ON a.idperson = b.idperson WHERE a.deslogin = :LOGIN", array(
 			":LOGIN"=>$login
-		));
-		//Verifica o login
-		if(count($results)===0){
-			throw new \Exception("Usuario inexistente ou senha inválida", 1);
-			
+		)); 
+
+		if (count($results) === 0)
+		{
+			throw new \Exception("Usuário inexistente ou senha inválida.");
 		}
 
 		$data = $results[0];
-		//verifica a senha
-		if (password_verify($password,$data["despassword"])===true){
+
+		if (password_verify($password, $data["despassword"]) === true)
+		{
+
 			$user = new User();
-			//Seta os dados do banco no atributo values (class Model)
+
+			$data['desperson'] = utf8_encode($data['desperson']);
+
 			$user->setData($data);
 
-			//Define a variavel Sessao
 			$_SESSION[User::SESSION] = $user->getValues();
 
 			return $user;
-		}
-		else{
 
-			throw new \Exception("Usuario inexistente ou senha inválida", 1);
+		} else {
+			throw new \Exception("Usuário inexistente ou senha inválida.");
 		}
+
 	}
-	//Usado no admin para verificar se o usuario e admin
-	public static function verifyLogin($inadmin= true) {
-		//Caso Nao esteja logado ou nao seja um usuario admin
-		if(!User::checkLogin($inadmin)){
-			//Retorna para a pagina de login
-			header("Location: /admin/login");
+
+	public static function verifyLogin($inadmin = true)
+	{
+
+		if (!User::checkLogin($inadmin)) {
+
+			if ($inadmin) {
+				header("Location: /admin/login");
+			} else {
+				header("Location: /login");
+			}
 			exit;
+
 		}
 
+	}
+
+	public static function logout()
+	{
+
+		$_SESSION[User::SESSION] = NULL;
 
 	}
 
-	public static function logout(){
-
-		$_SESSION[User::SESSION]=NULL;
-		
-	}
-	//Listar os uusarios
-	public static function listAll(){
+	public static function listAll()
+	{
 
 		$sql = new Sql();
 
-		return $sql->select("SELECT* from tb_users a INNER JOIN tb_persons b USING(idperson) ORDER BY b.desperson");
+		return $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) ORDER BY b.desperson");
+
 	}
 
-	//Cadastrar um novo usuario
-	public function save(){
+	public function save()
+	{
+
 		$sql = new Sql();
 
-
-		$results = $sql->select("CALL sp_users_save(:desperson,:deslogin,:despassword,:desemail,:nrphone,:inadmin)",array(
-			":desperson"	=>$this->getdesperson(),
-			":deslogin"		=>$this->getdeslogin(),
-			":despassword"	=>$this->getdespassword(),
-			":desemail"		=>$this->getdesemail(),
-			":nrphone"		=>$this->getnrphone(),
-			"inadmin"		=>$this->getinadmin()
-		
+		$results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+			":desperson"=>utf8_decode($this->getdesperson()),
+			":deslogin"=>$this->getdeslogin(),
+			":despassword"=>User::getPasswordHash($this->getdespassword()),
+			":desemail"=>$this->getdesemail(),
+			":nrphone"=>$this->getnrphone(),
+			":inadmin"=>$this->getinadmin()
 		));
 
 		$this->setData($results[0]);
 
-
 	}
-	//Pesquisar um usario atraves de um ID
-	public function get($iduser){
+
+	public function get($iduser)
+	{
 
 		$sql = new Sql();
 
-		$results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) WHERE a.iduser = :iduser",array(
-				":iduser"=>$iduser
-
-			));
-
-		$this->setData($results[0]);
-	}
-
-	
-	//Atualizar um usario.
-	public function update(){
-		$sql = new Sql();
-
-	
-
-		$results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)",array(
-			":iduser"		=>$this->getiduser(),
-			":desperson"	=>$this->getdesperson(),
-			":deslogin"		=>$this->getdeslogin(),
-			":despassword"	=>$this->getdespassword(),
-			":desemail"		=>$this->getdesemail(),
-			":nrphone"		=>$this->getnrphone(),
-			"inadmin"		=>$this->getinadmin()
-		
+		$results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) WHERE a.iduser = :iduser", array(
+			":iduser"=>$iduser
 		));
 
-		$this->setData($results[0]);
+		$data = $results[0];
 
+		$data['desperson'] = utf8_encode($data['desperson']);
+
+
+		$this->setData($data);
 
 	}
-	//Deletar um usuario
-	public function delete(){
+
+	public function update()
+	{
+
+		$sql = new Sql();
+
+		$results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+			":iduser"=>$this->getiduser(),
+			":desperson"=>utf8_decode($this->getdesperson()),
+			":deslogin"=>$this->getdeslogin(),
+			":despassword"=>User::getPasswordHash($this->getdespassword()),
+			":desemail"=>$this->getdesemail(),
+			":nrphone"=>$this->getnrphone(),
+			":inadmin"=>$this->getinadmin()
+		));
+
+		$this->setData($results[0]);		
+
+	}
+
+	public function delete()
+	{
 
 		$sql = new Sql();
 
@@ -170,83 +192,79 @@ class User extends Model{
 			":iduser"=>$this->getiduser()
 		));
 
-
 	}
-	//retorna um emails
-	public static function getForgot($email){
-		// 1 - Verificar se o email esta cadastrado
+
+	public static function getForgot($email, $inadmin = true)
+	{
+
 		$sql = new Sql();
 
 		$results = $sql->select("
-
-			SELECT * 
+			SELECT *
 			FROM tb_persons a
 			INNER JOIN tb_users b USING(idperson)
-			WHERE a.desemail = :email
+			WHERE a.desemail = :email;
+		", array(
+			":email"=>$email
+		));
 
-
-			", array(
-				":email"=>$email
-
-			));
-
-
-		if(count($results)==0){
-			throw new \Exception("Nao foi possivel recuperar a senha", 1);
+		if (count($results) === 0)
+		{
+			throw new \Exception("Não foi possível recuperar a senha.");
 			
-		}else{
-			//Caso o email exista, fazer um link, com o id criptografado
+		}
+		else
+		{
 
 			$data = $results[0];
 
-			//Chama a procedure para redifinir senha. Cadastra na tabela de recuperacao de senha.
-			$results2 = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser,:desip)",array(
-				":iduser" => $data["iduser"],
-				":desip"  => $_SERVER["REMOTE_ADDR"]
+			$results2 = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser, :desip)", array(
+				":iduser"=>$data["iduser"],
+				":desip"=>$_SERVER["REMOTE_ADDR"]
 			));
-			
-			
-			if(count($results2)===0){
-				//Procedure nao retornou valores
-				throw new \Exception("Nao foi possivel recuperar a senha", 1);
-				
-			}else{
+
+			if (count($results2) === 0)
+			{
+
+				throw new \Exception("Não foi possível recuperar a senha");
+
+			}
+			else
+			{
 
 				$dataRecovery = $results2[0];
-				//Criptografia do link
+
 				$code = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, User::SECRET, $dataRecovery["idrecovery"], MCRYPT_MODE_ECB));
-				//Link. O index deve ter uma rota para tratar esse codigo.
-				$link= "http://www.ecommerce.com/admin/forgot/reset?code=$code";
-				
-				//Envio do email.
-				//Mailer($toAddress,$toName,$subject, $tplName,$data=array())
-				$mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinir senha da Hcode Store","forgot",
-					array(
-						"name"=>$data["desperson"],
-						"link"=>$link
-					));
-				try{
-				$mailer->send();
-				}catch(\Exception $e){
-					throw new Exception("Erro ao enviar o email: ".$e ,1);
-					
+
+				if ($inadmin) {
+					$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";	
+				} else {
+					$link = "http://www.hcodecommerce.com.br/forgot/reset?code=$code";
 				}
 
+				$mailer = new Mailer($data["desemail"], $data["desperson"], "Redefinir Senha da Hcode Store", "forgot", array(
+					"name"=>$data["desperson"],
+					"link"=>$link
+				));
+
+				$mailer->send();
+
 				return $data;
-						
-	
+
 			}
+
 
 		}
 
 	}
 
-	//Valida o codigo enviado pelo link
 	public static function validForgotDecrypt($code)
 	{
-		//Descriptografa o codigo
+
 		$idrecovery = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, User::SECRET, base64_decode($code), MCRYPT_MODE_ECB);
+
 		$sql = new Sql();
+
 		$results = $sql->select("
 			SELECT * 
 			FROM tb_userspasswordsrecoveries a
@@ -261,41 +279,115 @@ class User extends Model{
 		", array(
 			":idrecovery"=>$idrecovery
 		));
+
 		if (count($results) === 0)
 		{
 			throw new \Exception("Não foi possível recuperar a senha.");
 		}
 		else
 		{
+
 			return $results[0];
+
 		}
+
 	}
 
+	public static function setFogotUsed($idrecovery)
+	{
 
-
-
-	public static function setForgotUsed($idrecovery){
 		$sql = new Sql();
 
-		$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery",array(
-			":idrecovery" =>$idrecovery			
+		$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery", array(
+			":idrecovery"=>$idrecovery
 		));
 
 	}
 
-	public function setPassword($password){
+	public function setPassword($password)
+	{
 
 		$sql = new Sql();
-		//Atualiza 
-		$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser",array(
+
+		$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser", array(
 			":password"=>$password,
 			":iduser"=>$this->getiduser()
 		));
+
 	}
 
+	public static function setError($msg)
+	{
 
+		$_SESSION[User::ERROR] = $msg;
 
+	}
+
+	public static function getError()
+	{
+
+		$msg = (isset($_SESSION[User::ERROR]) && $_SESSION[User::ERROR]) ? $_SESSION[User::ERROR] : '';
+
+		User::clearError();
+
+		return $msg;
+
+	}
+
+	public static function clearError()
+	{
+
+		$_SESSION[User::ERROR] = NULL;
+
+	}
+
+	public static function setErrorRegister($msg)
+	{
+
+		$_SESSION[User::ERROR_REGISTER] = $msg;
+
+	}
+
+	public static function getErrorRegister()
+	{
+
+		$msg = (isset($_SESSION[User::ERROR_REGISTER]) && $_SESSION[User::ERROR_REGISTER]) ? $_SESSION[User::ERROR_REGISTER] : '';
+
+		User::clearErrorRegister();
+
+		return $msg;
+
+	}
+
+	public static function clearErrorRegister()
+	{
+
+		$_SESSION[User::ERROR_REGISTER] = NULL;
+
+	}
+
+	public static function checkLoginExist($login)
+	{
+
+		$sql = new Sql();
+
+		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin", [
+			':deslogin'=>$login
+		]);
+
+		return (count($results) > 0);
+
+	}
+
+	public static function getPasswordHash($password)
+	{
+
+		return password_hash($password, PASSWORD_DEFAULT, [
+			'cost'=>12
+		]);
+
+	}
 
 }
 
-?>
+ ?>

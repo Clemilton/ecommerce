@@ -1,6 +1,7 @@
 
 <?php
 
+use \Hcode\Model\User;
 
 function formatPrice(float $vlprice)
 {
@@ -116,4 +117,17 @@ function smart_resize_image($file,
  
     return true;
   }
+
+function checkLogin($inadmin = true)
+{
+
+  return User::checkLogin($inadmin);
+}
+function getUserName()
+{
+  $user = User::getFromSession();
+  return $user->getdesperson();
+}
+
+
 ?>
