@@ -250,4 +250,76 @@ $app->post("/register",function (){
 });
 
 
+$app->get('/forgot/',function(){
+
+	//Inicializa a pagina. Nao tem header nem footer nessa pagina
+	$page  = new Page();
+
+	$page->setTpl("forgot");
+
+
+});
+
+$app->post('/forgot',function(){
+
+	$user = User::getForgot($_POST["email"],false);
+
+	header("Location: /forgot/sent");
+	exit;
+});
+
+//Aviso de email envaiado
+$app->get('/forgot/sent',function(){
+
+	//Inicializa a pagina. Nao tem header nem footer no admin
+	$page  = new Page();
+
+	$page->setTpl("forgot-sent");
+
+
+});
+//Rota do link do email
+$app->get('/forgot/reset',function(){
+	//Valida o codigo
+	$user = User::validForgotDecrypt($_GET["code"]);
+
+
+	//Cria o template html
+	$page  = new Page();
+
+	$page->setTpl("forgot-reset",array(
+		"name"=>$user["desperson"],
+		"code"=>$_GET["code"]
+	));
+});
+
+$app->post("/forgot/reset",function(){
+	//Valida o codigo
+	$forgot = User::validForgotDecrypt($_POST["code"]);
+
+	//Pega o id do usuario que deseja recuperar a senha
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	$user = new User();
+	//Pega um usuario a traves do id e seta em $user
+	$user->get((int) $forgot["iduser"]);
+
+	//Criptografa a senha
+	$password = password_hash($_POST["password"],PASSWORD_DEFAULT,[
+		"cost"=>12
+	]);
+	//Cadastra a senha no banco;
+	$user->setPassword($password);
+
+	$page  = new Page();
+
+	$page->setTpl("forgot-reset-success");
+
+
+
+
+});
+
+
+
 ?>
