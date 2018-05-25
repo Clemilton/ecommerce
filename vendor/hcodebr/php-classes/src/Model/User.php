@@ -7,11 +7,11 @@ use \Hcode\Model;
 use \Hcode\Mailer;
 
 class User extends Model {
-
 	const SESSION = "User";
 	const SECRET = "HcodePhp7_Secret";
 	const ERROR = "UserError";
 	const ERROR_REGISTER = "UserErrorRegister";
+	const SUCCESS = "UserSucesss";
 
 	public static function getFromSession()
 	{
@@ -173,7 +173,7 @@ class User extends Model {
 			":iduser"=>$this->getiduser(),
 			":desperson"=>utf8_decode($this->getdesperson()),
 			":deslogin"=>$this->getdeslogin(),
-			":despassword"=>User::getPasswordHash($this->getdespassword()),
+			":despassword"=>$this->getdespassword(),
 			":desemail"=>$this->getdesemail(),
 			":nrphone"=>$this->getnrphone(),
 			":inadmin"=>$this->getinadmin()
@@ -236,11 +236,16 @@ class User extends Model {
 
 				$code = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, User::SECRET, $dataRecovery["idrecovery"], MCRYPT_MODE_ECB));
 
-				if ($inadmin) {
-					$link = "http://www.ecommerce.com/admin/forgot/reset?code=$code";	
+				if ($inadmin === true) {
+					
+					$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+
 				} else {
-					$link = "http://www.ecommerce.com/forgot/reset?code=$code";
+
+					$link = "http://www.hcodecommerce.com.br/forgot/reset?code=$code";
+
 				}
+
 
 				$mailer = new Mailer($data["desemail"], $data["desperson"], "Redefinir Senha da Hcode Store", "forgot", array(
 					"name"=>$data["desperson"],
@@ -338,6 +343,31 @@ class User extends Model {
 	{
 
 		$_SESSION[User::ERROR] = NULL;
+
+	}
+
+	public static function setSuccess($msg)
+	{
+
+		$_SESSION[User::SUCCESS] = $msg;
+
+	}
+
+	public static function getSuccess()
+	{
+
+		$msg = (isset($_SESSION[User::SUCCESS]) && $_SESSION[User::SUCCESS]) ? $_SESSION[User::SUCCESS] : '';
+
+		User::clearSuccess();
+
+		return $msg;
+
+	}
+
+	public static function clearSuccess()
+	{
+
+		$_SESSION[User::SUCCESS] = NULL;
 
 	}
 
