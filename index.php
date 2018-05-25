@@ -26,6 +26,11 @@ require_once("admin-categories.php");
 //Rotas e CRUD Products-Admin
 require_once("admin-products.php");
 
+
+//Rotas e CRUD Products-Admin
+require_once("admin-orders.php");
+
+
 $app->run();
 
  ?>
