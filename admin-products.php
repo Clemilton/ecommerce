@@ -33,7 +33,7 @@ $app->get("/admin/products",function(){
 			'text'=>$x+1
 		]);
 	}
-	$products= Product::listAll();
+	
 	$page = new PageAdmin();
 	
 	$page->setTpl("products", [
